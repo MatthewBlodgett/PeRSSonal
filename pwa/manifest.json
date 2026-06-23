@@ -1,0 +1,25 @@
+{
+  "name": "PeRSSonal",
+  "short_name": "PeRSSonal",
+  "description": "RSS for People — Track notable people's podcast appearances, YouTube interviews, and public content.",
+  "start_url": "/index.html",
+  "display": "standalone",
+  "background_color": "#0f0f1a",
+  "theme_color": "#7c3aed",
+  "orientation": "portrait-primary",
+  "categories": ["news", "productivity", "social"],
+  "icons": [
+    {
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%237c3aed'/%3E%3Cstop offset='100%25' stop-color='%2306b6d4'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='512' height='512' rx='96' fill='url(%23g)'/%3E%3Ccircle cx='160' cy='160' r='40' fill='%23fff'/%3E%3Ccircle cx='160' cy='352' r='40' fill='%23fff'/%3E%3Cpath d='M240 160h112v48H240zm0 96h112v48H240zm0 96h80v48h-80z' fill='%23fff' opacity='.6'/%3E%3C/svg%3E",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%237c3aed'/%3E%3Cstop offset='100%25' stop-color='%2306b6d4'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='192' height='192' rx='36' fill='url(%23g)'/%3E%3Ccircle cx='60' cy='60' r='16' fill='%23fff'/%3E%3Ccircle cx='60' cy='132' r='16' fill='%23fff'/%3E%3Cpath d='M90 60h44v18H90zm0 36h44v18H90zm0 36h32v18H90z' fill='%23fff' opacity='.6'/%3E%3C/svg%3E",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

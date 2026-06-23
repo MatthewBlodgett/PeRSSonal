@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
+<meta name="theme-color" content="#7c3aed">
+<meta name="description" content="RSS for People — Track notable people's podcast appearances, YouTube interviews, and public content.">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="PeRSSonal">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%237c3aed'/%3E%3Cstop offset='100%25' stop-color='%2306b6d4'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='192' height='192' rx='36' fill='url(%23g)'/%3E%3Ccircle cx='60' cy='60' r='16' fill='%23fff'/%3E%3Ccircle cx='60' cy='132' r='16' fill='%23fff'/%3E%3Cpath d='M90 60h44v18H90zm0 36h44v18H90zm0 36h32v18H90z' fill='%23fff' opacity='.6'/%3E%3C/svg%3E">
+<title>PeRSSonal — RSS for People</title>
+
+<style>
+/* ========== Reset & Variables ========== */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0f0f1a;
+  --card:#1a1a2e;
+  --card-border:#2a2a3e;
+  --purple:#7c3aed;
+  --teal:#06b6d4;
+  --text:#e2e8f0;
+  --muted:#94a3b8;
+  --dim:#64748b;
+  --radius:12px;
+  --radius-sm:8px;
+  --nav-h:64px;
+  --header-h:130px;
+}
+html{font-size:16px;-webkit-text-size-adjust:100%;overscroll-behavior:none}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Oxygen,Ubuntu,Cantarell,sans-serif;
+  background:var(--bg);
+  color:var(--text);
+  min-height:100dvh;
+  overflow-x:hidden;
+  line-height:1.5;
+  -webkit-font-smoothing:antialiased
+}
+::selection{background:var(--purple);color:#fff}
+
+/* ========== Layout ========== */
+.app-wrap{max-width:960px;margin:0 auto;padding:0 16px calc(var(--nav-h) + 16px);min-height:100dvh}
+@media(min-width:768px){
+  .app-wrap{max-width:1100px;padding:0 24px 24px;display:grid;grid-template-columns:280px 1fr;gap:28px;align-items:start}
+}
+
+/* ========== Header ========== */
+header{
+  grid-column:1/-1;
+  text-align:center;
+  padding:20px 0 14px;
+  border-bottom:1px solid var(--card);
+  margin:0 -16px 20px;
+  background:var(--bg);
+  position:sticky;top:0;z-index:10
+}
+@media(min-width:768px){
+  header{margin:0 -24px 24px;padding:24px 0 18px}
+}
+.logo-row{display:flex;align-items:center;justify-content:center;gap:10px;font-size:1.5rem;font-weight:700;letter-spacing:-.5px}
+.logo-icon{width:34px;height:34px;border-radius:10px;background:linear-gradient(135deg,var(--purple),var(--teal));display:flex;align-items:center;justify-content:center;font-size:1.2rem;line-height:1}
+.logo-text{background:linear-gradient(135deg,var(--purple),var(--teal));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.subtitle{font-size:.82rem;color:var(--muted);margin-top:2px}
+.tagline{font-size:.87rem;color:var(--teal);margin-top:6px;min-height:1.4em;transition:opacity .3s}
+.tagline.fade{opacity:0}
+
+/* ========== Offline Banner ========== */
+.offline-banner{display:none;background:var(--purple);color:#fff;text-align:center;padding:6px 12px;font-size:.8rem;margin-bottom:12px;border-radius:var(--radius-sm);animation:fadeIn .3s}
+.offline-banner.show{display:block}
+
+/* ========== Feed ========== */
+.filter-bar{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px}
+.filter-chip{padding:5px 14px;border-radius:20px;border:1px solid var(--card-border);background:transparent;color:var(--muted);font-size:.8rem;cursor:pointer;transition:all .2s;font-family:inherit}
+.filter-chip:hover{border-color:var(--purple);color:var(--text)}
+.filter-chip.active{background:var(--purple);border-color:var(--purple);color:#fff}
+.feed{display:grid;gap:12px}
+@keyframes cardIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+.card{
+  background:var(--card);border-radius:var(--radius);padding:16px;
+  border:1px solid var(--card-border);transition:all .2s;animation:cardIn .3s ease both
+}
+.card:hover{border-color:var(--purple);transform:translateY(-1px)}
+.card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.card-person{display:flex;align-items:center;gap:8px;font-weight:600;font-size:.88rem}
+.card-avatar{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.65rem;font-weight:700;color:#fff;flex-shrink:0}
+.badge{font-size:.68rem;padding:2px 8px;border-radius:6px;background:var(--bg);font-weight:500;white-space:nowrap}
+.badge-podcast{color:#a78bfa}
+.badge-youtube{color:#f87171}
+.badge-post{color:#22d3ee}
+.card-title{font-size:.92rem;font-weight:500;color:var(--text);margin-bottom:4px;line-height:1.4}
+.card-source{font-size:.78rem;color:var(--teal);margin-bottom:6px}
+.card-bottom{display:flex;align-items:center;justify-content:space-between;font-size:.76rem;color:var(--dim)}
+.card-link{color:var(--purple);font-size:.8rem;transition:color .2s}
+.card-link:hover{color:var(--teal)}
+@media(min-width:600px){.feed{grid-template-columns:1fr 1fr}}
+@media(min-width:900px){.feed{grid-template-columns:1fr}}
+
+/* ========== Empty State ========== */
+.empty-state{text-align:center;padding:48px 16px;color:var(--muted)}
+.empty-state .empty-icon{font-size:2.5rem;margin-bottom:12px;opacity:.4}
+.empty-state h3{font-size:1.05rem;font-weight:600;color:var(--text);margin-bottom:4px}
+.empty-state p{font-size:.84rem;color:var(--dim)}
+
+/* ========== People ========== */
+.people-sidebar{}
+.people-list{display:grid;gap:10px}
+.person-card{
+  background:var(--card);border-radius:var(--radius);padding:12px 14px;
+  border:1px solid var(--card-border);display:flex;align-items:center;gap:10px;transition:border-color .2s
+}
+.person-card:hover{border-color:var(--purple)}
+.person-avatar{
+  width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  font-size:.85rem;font-weight:700;color:#fff;flex-shrink:0
+}
+.person-info{flex:1;min-width:0}
+.person-name{font-weight:600;font-size:.9rem}
+.person-handle{font-size:.77rem;color:var(--teal)}
+.person-bio{font-size:.74rem;color:var(--dim);margin-top:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.person-count{font-size:.72rem;color:var(--dim);background:var(--bg);padding:2px 10px;border-radius:12px;white-space:nowrap}
+
+/* ========== Add Person Form ========== */
+.add-form{background:var(--card);border-radius:var(--radius);padding:16px;border:1px solid var(--card-border);margin-bottom:16px}
+.add-form h3{font-size:.88rem;font-weight:600;margin-bottom:10px;color:var(--muted);display:flex;align-items:center;gap:6px}
+.form-row{display:flex;gap:8px;flex-wrap:wrap}
+.form-input{
+  flex:1;min-width:100px;background:var(--bg);border:1px solid var(--card-border);
+  border-radius:var(--radius-sm);padding:9px 12px;color:var(--text);font-size:.84rem;
+  font-family:inherit;outline:none;transition:border-color .2s
+}
+.form-input:focus{border-color:var(--purple)}
+.form-input::placeholder{color:var(--dim)}
+.btn{
+  background:linear-gradient(135deg,var(--purple),var(--teal));
+  border:none;color:#fff;padding:9px 18px;border-radius:var(--radius-sm);
+  font-size:.84rem;font-weight:600;cursor:pointer;transition:opacity .2s;
+  font-family:inherit;white-space:nowrap
+}
+.btn:active{opacity:.8}
+.btn:hover{opacity:.9}
+
+/* ========== About ========== */
+.about-box{background:var(--card);border-radius:var(--radius);padding:24px;border:1px solid var(--card-border)}
+.about-box h2{font-size:1.15rem;font-weight:700;margin-bottom:10px;background:linear-gradient(135deg,var(--purple),var(--teal));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.about-box p{font-size:.86rem;color:var(--muted);line-height:1.7;margin-bottom:10px}
+.about-box ul{list-style:none;padding:0;margin-bottom:10px}
+.about-box li{font-size:.84rem;color:var(--muted);padding:4px 0 4px 18px;position:relative}
+.about-box li::before{content:'›';position:absolute;left:2px;color:var(--purple);font-weight:700}
+.stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:14px 0}
+.stat-box{background:var(--bg);border-radius:var(--radius-sm);padding:10px;text-align:center}
+.stat-val{font-size:1.3rem;font-weight:700;color:var(--purple)}
+.stat-lbl{font-size:.7rem;color:var(--dim);margin-top:1px}
+
+/* ========== Bottom Nav (Mobile only) ========== */
+.bottom-nav{
+  display:flex;position:fixed;bottom:0;left:0;right:0;
+  height:var(--nav-h);background:rgba(15,15,26,.94);backdrop-filter:blur(14px);
+  -webkit-backdrop-filter:blur(14px);border-top:1px solid var(--card);
+  z-index:100;padding-bottom:env(safe-area-inset-bottom,0)
+}
+.nav-btn{
+  flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:2px;border:none;background:transparent;color:var(--dim);font-size:.62rem;
+  cursor:pointer;font-family:inherit;padding:4px 0;-webkit-tap-highlight-color:transparent;
+  transition:color .2s;position:relative
+}
+.nav-btn .nav-icon{font-size:1.2rem;line-height:1}
+.nav-btn.active{color:var(--purple)}
+.nav-btn.active::after{
+  content:'';position:absolute;top:-1px;left:18%;right:18%;
+  height:2px;border-radius:1px;background:linear-gradient(90deg,var(--purple),var(--teal))
+}
+@media(min-width:768px){.bottom-nav{display:none}}
+
+/* ========== Mobile Sections ========== */
+.mobile-section{display:none;animation:fadeIn .25s ease}
+.mobile-section.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+/* ========== Toast ========== */
+.toast{
+  position:fixed;top:20px;left:50%;transform:translateX(-50%) translateY(-80px);
+  background:var(--card);color:var(--text);padding:10px 20px;border-radius:10px;
+  font-size:.84rem;border:1px solid var(--card-border);z-index:200;
+  transition:transform .35s cubic-bezier(.4,0,.2,1);box-shadow:0 8px 32px #00000066;
+  pointer-events:none;white-space:nowrap
+}
+.toast.show{transform:translateX(-50%) translateY(0)}
+
+/* ========== Desktop: sidebar visible, sections all shown ========== */
+@media(min-width:768px){
+  .people-sidebar{position:sticky;top:24px}
+  .mobile-section{display:block!important}
+}
+</style>
+</head>
+<body>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<!-- App -->
+<div class="app-wrap">
+
+  <!-- Header -->
+  <header>
+    <div class="logo-row">
+      <span class="logo-icon">📡</span>
+      <span class="logo-text">PeRSSonal</span>
+    </div>
+    <div class="subtitle">RSS for People</div>
+    <div class="tagline" id="tagline">Track the smartest people in AI</div>
+  </header>
+
+  <!-- Offline Banner -->
+  <div class="offline-banner" id="offlineBanner">📡 Offline — cached content only</div>
+
+  <!-- Desktop Sidebar: People + Add Form -->
+  <aside class="people-sidebar">
+    <div class="add-form" id="addForm">
+      <h3>➕ Track Someone</h3>
+      <div class="form-row">
+        <input type="text" class="form-input" id="nameInput" placeholder="Full name" autocomplete="off">
+        <input type="text" class="form-input" id="handleInput" placeholder="@handle" autocomplete="off">
+        <button class="btn" id="addBtn">Add</button>
+      </div>
+    </div>
+    <div class="people-list" id="peopleList"></div>
+  </aside>
+
+  <!-- Main Content -->
+  <main>
+
+    <!-- FEED (mobile section wrapper) -->
+    <div class="mobile-section active" id="sectionFeed">
+      <div class="filter-bar" id="filterBar"></div>
+      <div class="feed" id="feed"></div>
+      <div class="empty-state" id="emptyState" style="display:none">
+        <div class="empty-icon">📭</div>
+        <h3>No appearances found</h3>
+        <p id="emptyMsg">Try adjusting your filters or add someone new.</p>
+      </div>
+    </div>
+
+    <!-- PEOPLE (mobile section — same form/list refilled by JS) -->
+    <div class="mobile-section" id="sectionPeople">
+      <div class="add-form" id="addFormMobile">
+        <h3>➕ Track Someone</h3>
+        <div class="form-row">
+          <input type="text" class="form-input" id="nameInputMobile" placeholder="Full name" autocomplete="off">
+          <input type="text" class="form-input" id="handleInputMobile" placeholder="@handle" autocomplete="off">
+          <button class="btn" id="addBtnMobile">Add</button>
+        </div>
+      </div>
+      <div class="people-list" id="peopleListMobile"></div>
+    </div>
+
+    <!-- ABOUT (mobile section) -->
+    <div class="mobile-section" id="sectionAbout">
+      <div class="about-box">
+        <h2>About PeRSSonal</h2>
+        <p><strong>PeRSSonal</strong> is "RSS for People" — a way to track notable people's podcast appearances, YouTube interviews, and public posts in a single feed.</p>
+        <p>Built for curious minds who follow thinkers across AI, crypto, macro, physics, and tech.</p>
+        <ul>
+          <li>Track appearances from people you care about</li>
+          <li>Filter by person to focus on specific voices</li>
+          <li>Add anyone you want to follow</li>
+          <li>All data stays on your device</li>
+        </ul>
+        <div class="stats-row">
+          <div class="stat-box"><div class="stat-val" id="statPeople">0</div><div class="stat-lbl">People Tracked</div></div>
+          <div class="stat-box"><div class="stat-val" id="statAppearances">0</div><div class="stat-lbl">Appearances</div></div>
+          <div class="stat-box"><div class="stat-val" id="statSources">0</div><div class="stat-lbl">Sources</div></div>
+        </div>
+        <p style="font-size:.76rem;color:var(--dim);margin-top:12px">PeRSSonal v1.0 · Made with 📡</p>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- Bottom Nav (mobile) -->
+<nav class="bottom-nav" id="bottomNav">
+  <button class="nav-btn active" data-section="feed">
+    <span class="nav-icon">📰</span> Feed
+  </button>
+  <button class="nav-btn" data-section="people">
+    <span class="nav-icon">👥</span> People
+  </button>
+  <button class="nav-btn" data-section="about">
+    <span class="nav-icon">ℹ️</span> About
+  </button>
+</nav>
+
+<script>
+(function(){
+'use strict';
+
+// ========== Seed Data ==========
+const DEFAULT_PEOPLE = [
+  { id:'p1', name:'Jordi Visser', handle:'@jvisserlabs', bio:'Macro / AI / Crypto' },
+  { id:'p2', name:'Raoul Pal', handle:'@RaoulGMI', bio:'The Exponential Age' },
+  { id:'p3', name:'Alex Wissner-Gross', handle:'@AlexWissnerG', bio:'Moonshots — AI / Physics' },
+  { id:'p4', name:'Jensen Huang', handle:'@nvidia', bio:'NVIDIA CEO' }
+];
+
+const DEFAULT_APPEARANCES = [
+  { id:'a1', personId:'p1', type:'podcast', title:'The Macro Compass — Rate Cuts, AI Capex & the Liquidity Cycle', source:'Macro Voices', date:'2026-06-18', link:'https://pomp.substack.com' },
+  { id:'a2', personId:'p1', type:'youtube', title:'AI Infrastructure Outlook with Jordi Visser', source:'Bloomberg Markets', date:'2026-06-10', link:'https://bloomberg.com' },
+  { id:'a3', personId:'p1', type:'post', title:'Thread: Why the liquidity cycle matters more than rate cuts in H2 2026', source:'X / Twitter', date:'2026-06-15', link:'https://x.com/jvisserlabs' },
+  { id:'a4', personId:'p2', type:'podcast', title:'The Exponential Age — Tokenization, Credit & the Macro Regime Change', source:'Real Vision', date:'2026-06-20', link:'https://realvision.com' },
+  { id:'a5', personId:'p2', type:'youtube', title:'Global Liquidity is Surging — What It Means for Risk Assets', source:'Real Vision Crypto', date:'2026-06-12', link:'https://youtube.com/@realvision' },
+  { id:'a6', personId:'p2', type:'post', title:'The macro regime has flipped. Here is what I am watching next.', source:'X / Twitter', date:'2026-06-19', link:'https://x.com/RaoulGMI' },
+  { id:'a7', personId:'p3', type:'podcast', title:'Moonshots & Physics — Causal Entropic Forces and the Future of AI', source:'Lex Fridman Podcast', date:'2026-06-14', link:'https://lexfridman.com' },
+  { id:'a8', personId:'p3', type:'youtube', title:'The Physics of Intelligence at MIT', source:'MIT Media Lab', date:'2026-06-05', link:'https://youtube.com/mit' },
+  { id:'a9', personId:'p3', type:'post', title:'Toward a unified theory of intelligence in physical systems — new preprint', source:'arXiv / X', date:'2026-06-16', link:'https://arxiv.org' },
+  { id:'a10', personId:'p4', type:'podcast', title:'Jensen on AI Factories, Blackwell Ultra and the Next Trillion-Dollar Industry', source:'Acquired', date:'2026-06-22', link:'https://acquired.fm' },
+  { id:'a11', personId:'p4', type:'youtube', title:'Computex 2026 Keynote: The Age of Physical AI', source:'NVIDIA Official', date:'2026-06-02', link:'https://nvidia.com' },
+  { id:'a12', personId:'p4', type:'post', title:'"AI factories are the new data centers." Full remarks from Computex 2026.', source:'LinkedIn', date:'2026-06-03', link:'https://linkedin.com/in/jensenthuang' }
+];
+
+// ========== Data Layer ==========
+const DB = {
+  get(k,fb) { try { return JSON.parse(localStorage.getItem('p_'+k)) ?? fb } catch(e){ return fb } },
+  set(k,v) { try { localStorage.setItem('p_'+k,JSON.stringify(v)) } catch(e){} },
+  seed(){
+    if(!localStorage.getItem('p_seeded')){
+      this.set('people',DEFAULT_PEOPLE);
+      this.set('appearances',DEFAULT_APPEARANCES);
+      this.set('seeded',true);
+    }
+  }
+};
+DB.seed();
+let people = DB.get('people',DEFAULT_PEOPLE);
+let appearances = DB.get('appearances',DEFAULT_APPEARANCES);
+
+// ========== State ==========
+let activeFilter = null;
+let taglineIdx = 0;
+const TAGLINES = ['Track the smartest people in AI','in Crypto','in Fantasy Football','in Physics','in Tech'];
+
+// ========== DOM ==========
+const $ = s => document.querySelector(s);
+const feed = $('#feed');
+const filterBar = $('#filterBar');
+const emptyState = $('#emptyState');
+const emptyMsg = $('#emptyMsg');
+const peopleList = $('#peopleList');
+const peopleListMobile = $('#peopleListMobile');
+const taglineEl = $('#tagline');
+const toastEl = $('#toast');
+const offlineBanner = $('#offlineBanner');
+
+// ========== Utils ==========
+const fmtDate = s => new Date(s+'T00:00:00Z').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric',timeZone:'UTC'});
+const init = n => n.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+const grad = i => ['linear-gradient(135deg,#7c3aed,#06b6d4)','linear-gradient(135deg,#ec4899,#8b5cf6)','linear-gradient(135deg,#f59e0b,#ec4899)','linear-gradient(135deg,#06b6d4,#10b981)','linear-gradient(135deg,#8b5cf6,#ec4899)'][i%5];
+
+// ========== Render Feed ==========
+function renderFeed(){
+  let list = [...appearances].sort((a,b)=>new Date(b.date)-new Date(a.date));
+  if(activeFilter) list = list.filter(a=>a.personId===activeFilter);
+
+  if(!list.length){
+    feed.innerHTML='';
+    emptyState.style.display='block';
+    emptyMsg.textContent=activeFilter ? 'No appearances found for this person.' : 'No appearances yet. Add someone to track!';
+    return;
+  }
+  emptyState.style.display='none';
+
+  feed.innerHTML=list.map((a,i)=>{
+    const p=people.find(x=>x.id===a.personId);
+    if(!p) return '';
+    const icon=a.type==='podcast'?'🎙':a.type==='youtube'?'🎬':'📝';
+    const cls=a.type==='podcast'?'badge-podcast':a.type==='youtube'?'badge-youtube':'badge-post';
+    const lbl=a.type==='podcast'?'Podcast':a.type==='youtube'?'YouTube':'Post';
+    return `<div class="card" style="animation-delay:${Math.min(i*.04,.5)}s">
+      <div class="card-header">
+        <div class="card-person"><div class="card-avatar" style="background:${grad(people.indexOf(p))}">${init(p.name)}</div>${p.name}</div>
+        <span class="badge ${cls}">${icon} ${lbl}</span>
+      </div>
+      <div class="card-title">${esc(a.title)}</div>
+      <div class="card-source">${esc(a.source)}</div>
+      <div class="card-bottom"><span>📅 ${fmtDate(a.date)}</span><a href="${esc(a.link)}" target="_blank" rel="noopener" class="card-link">View →</a></div>
+    </div>`;
+  }).join('');
+}
+
+// ========== Render People ==========
+function renderPeople(){
+  const h = (p,i) => {
+    const c = appearances.filter(a=>a.personId===p.id).length;
+    return `<div class="person-card">
+      <div class="person-avatar" style="background:${grad(i)}">${init(p.name)}</div>
+      <div class="person-info">
+        <div class="person-name">${esc(p.name)}</div>
+        <div class="person-handle">${esc(p.handle)}</div>${p.bio?`<div class="person-bio">${esc(p.bio)}</div>`:''}
+      </div>
+      <div class="person-count">${c} app.</div>
+    </div>`;
+  };
+  peopleList.innerHTML = people.map(h).join('');
+  peopleListMobile.innerHTML = people.map(h).join('');
+}
+
+// ========== Render Filters ==========
+function renderFilters(){
+  filterBar.innerHTML=`<button class="filter-chip${activeFilter===null?' active':''}" data-id="">All</button>`+
+    people.map(p=>`<button class="filter-chip${activeFilter===p.id?' active':''}" data-id="${p.id}">${esc(p.name)}</button>`).join('');
+  filterBar.querySelectorAll('.filter-chip').forEach(el=>{
+    el.addEventListener('click',()=>{ activeFilter=el.dataset.id||null; renderFilters(); renderFeed(); });
+  });
+}
+
+// ========== Render Stats ==========
+function renderStats(){
+  document.getElementById('statPeople').textContent=people.length;
+  document.getElementById('statAppearances').textContent=appearances.length;
+  document.getElementById('statSources').textContent=new Set(appearances.map(a=>a.source)).size;
+}
+
+// ========== Render All ==========
+function renderAll(){ renderFilters(); renderFeed(); renderPeople(); renderStats(); }
+
+// ========== Tagline Rotation ==========
+const rotateTagline = ()=>{
+  taglineIdx=(taglineIdx+1)%TAGLINES.length;
+  taglineEl.classList.add('fade');
+  setTimeout(()=>{ taglineEl.textContent=TAGLINES[taglineIdx]; taglineEl.classList.remove('fade'); },300);
+};
+setInterval(rotateTagline,4000);
+
+// ========== Mobile Nav ==========
+document.getElementById('bottomNav').addEventListener('click',e=>{
+  const btn=e.target.closest('.nav-btn');
+  if(!btn) return;
+  const section=btn.dataset.section;
+  document.querySelectorAll('.nav-btn').forEach(n=>n.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('.mobile-section').forEach(s=>s.classList.remove('active'));
+  const target=document.getElementById('section'+section.charAt(0).toUpperCase()+section.slice(1));
+  if(target) target.classList.add('active');
+});
+
+// ========== Add Person ==========
+function addPerson(prefix){
+  const nameEl=document.getElementById(prefix+'NameInput');
+  const handleEl=document.getElementById(prefix+'HandleInput');
+  const name=nameEl.value.trim();
+  const handle=handleEl.value.trim();
+  if(!name||!handle){ showToast('Enter a name and @handle.'); return; }
+  if(people.some(p=>p.handle.toLowerCase()===handle.toLowerCase())){ showToast('Already tracking this person.'); return; }
+  people.push({ id:'p'+Date.now(), name, handle: handle.startsWith('@')?handle:'@'+handle, bio:'' });
+  DB.set('people',people);
+  nameEl.value=''; handleEl.value='';
+  renderAll();
+  showToast(`Now tracking ${name}`);
+}
+document.getElementById('addBtn').addEventListener('click',()=>addPerson(''));
+document.getElementById('addBtnMobile').addEventListener('click',()=>addPerson('Mobile'));
+['nameInput','handleInput','nameInputMobile','handleInputMobile'].forEach(id=>{
+  document.getElementById(id).addEventListener('keydown',e=>{
+    if(e.key==='Enter') addPerson(id.includes('Mobile')?'Mobile':'');
+  });
+});
+
+// ========== Toast ==========
+let tt=null;
+function showToast(m){ toastEl.textContent=m; toastEl.classList.add('show'); clearTimeout(tt); tt=setTimeout(()=>toastEl.classList.remove('show'),2500); }
+
+// ========== Offline ==========
+function offline(){ offlineBanner.classList.toggle('show',!navigator.onLine); }
+window.addEventListener('online',offline); window.addEventListener('offline',offline); offline();
+
+// ========== Service Worker ==========
+if('serviceWorker'in navigator) navigator.serviceWorker.register('sw.js').catch(()=>{});
+
+// ========== Init ==========
+renderAll();
+console.log('📡 PeRSSonal ready | '+people.length+' people, '+appearances.length+' appearances');
+
+// ========== Esc ==========
+function esc(s){ const d=document.createElement('div'); d.textContent=s; return d.innerHTML; }
+
+})();
+</script>
+</body>
+</html>
